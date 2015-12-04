@@ -45,7 +45,7 @@
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
 function ImportJSON(url, query, parseOptions) {
-  return ImportJSONAdvanced(url, null, query, parseOptions, includeXPath_, defaultTransform_);
+  return ImportJSONAdvanced(url, null, query, parseOptions, defaultTransform_);
 }
 
 /**
@@ -74,19 +74,17 @@ function ImportJSON(url, query, parseOptions) {
  * @param {fetchOptions}  an object whose properties are options used to retrieve the JSON feed from the URL
  * @param {query}         the query passed to the include function
  * @param {parseOptions}  a comma-separated list of options that may alter processing of the data
- * @param {includeFunc}   a function with the signature func(query, path, options) that returns true if the data element at the given path
- *                        should be included or false otherwise.
  * @param {transformFunc} a function with the signature func(data, row, column, options) where data is a 2-dimensional array of the data
  *                        and row & column are the current row and column being processed. Any return value is ignored. Note that row 0
  *                        contains the headers for the data, so test for row==0 to process headers only.
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
-function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc, transformFunc) {
+function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, transformFunc) {
   var jsondata = UrlFetchApp.fetch(url, fetchOptions);
   var object   = JSON.parse(jsondata.getContentText());
 
-  return parseJSONObject_(object, query, parseOptions, includeFunc, transformFunc);
+  return parseJSONObject_(object, query, parseOptions, transformFunc);
 }
 
 /**
@@ -103,7 +101,7 @@ function URLEncode(value) {
 /**
  * Parses a JSON object and returns a two-dimensional array containing the data of that object.
  */
-function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
+function parseJSONObject_(object, query, options, transformFunc) {
   var headers = new Array();
   var data    = new Array();
 
@@ -115,7 +113,7 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
     options = options.toString().split(",");
   }
 
-  parseData_(headers, data, "", {rowIndex: 1}, object, query, options, includeFunc);
+  parseData_(headers, data, "", {rowIndex: 1}, object, query, options);
   parseHeaders_(headers, data);
   transformData_(data, options, transformFunc);
 
@@ -139,12 +137,12 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
  *
  * If the value is a scalar, the value is inserted directly into the data array.
  */
-function parseData_(headers, data, path, state, value, query, options, includeFunc) {
+function parseData_(headers, data, path, state, value, query, options) {
   var dataInserted = false;
 
   if (Array.isArray(value) && isObjectArray_(value)) {
     for (var i = 0; i < value.length; i++) {
-      if (parseData_(headers, data, path, state, value[i], query, options, includeFunc)) {
+      if (parseData_(headers, data, path, state, value[i], query, options)) {
         dataInserted = true;
 
         if (i > 0 && data[state.rowIndex]) {
@@ -154,11 +152,11 @@ function parseData_(headers, data, path, state, value, query, options, includeFu
     }
   } else if (isObject_(value)) {
     for (key in value) {
-      if (parseData_(headers, data, path + "/" + key, state, value[key], query, options, includeFunc)) {
+      if (parseData_(headers, data, path + "/" + key, state, value[key], query, options)) {
         dataInserted = true;
       }
     }
-  } else if (!includeFunc || includeFunc(query, path, options)) {
+  } else {
     // Handle arrays containing only scalar values
     if (Array.isArray(value)) {
       value = value.join();
@@ -222,32 +220,6 @@ function isObjectArray_(test) {
   }
 
   return false;
-}
-
-/**
- * Returns true if the given query applies to the given path.
- */
-function includeXPath_(query, path, options) {
-  if (!query) {
-    return true;
-  } else if (Array.isArray(query)) {
-    for (var i = 0; i < query.length; i++) {
-      if (applyXPathRule_(query[i], path, options)) {
-        return true;
-      }
-    }
-  } else {
-    return applyXPathRule_(query, path, options);
-  }
-
-  return false;
-};
-
-/**
- * Returns true if the rule applies to the given path.
- */
-function applyXPathRule_(rule, path, options) {
-  return path.indexOf(rule) == 0;
 }
 
 /**
