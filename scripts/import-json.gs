@@ -16,7 +16,6 @@
   Future enhancements may include:
 
    - Support for a real XPath like syntax similar to ImportXML for the query parameter
-   - Support for OAuth authenticated APIs (see AddOAuthService__ function for failed experiment)
 
   Or feel free to write these and add on to the library yourself!
   ------------------------------------------------------------------------------------------------------------------------------------
@@ -180,60 +179,6 @@ function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc,
  */
 function URLEncode(value) {
   return encodeURIComponent(value.toString());
-}
-
-/**
- * Adds an oAuth service using the given name and the list of properties.
- *
- * @note This method is an experiment in trying to figure out how to add an oAuth service without having to specify it on each
- *       ImportJSON call. The idea was to call this method in the first cell of a spreadsheet, and then use ImportJSON in other
- *       cells. This didn't work, but leaving this in here for further experimentation later.
- *
- *       The test I did was to add the following into the A1:
- *
- *           =AddOAuthService("twitter", "https://api.twitter.com/oauth/access_token",
- *                            "https://api.twitter.com/oauth/request_token", "https://api.twitter.com/oauth/authorize",
- *                            "<my consumer key>", "<my consumer secret>", "", "")
- *
- *       Information on obtaining a consumer key & secret for Twitter can be found at https://dev.twitter.com/docs/auth/using-oauth
- *
- *       Then I added the following into A2:
- *
- *           =ImportJSONViaPost("https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=fastfedora&count=2", "",
- *                              "oAuthServiceName=twitter,oAuthUseToken=always", "/", "")
- *
- *       I received an error that the "oAuthServiceName" was not a valid value. [twl 18.Apr.13]
- */
-function AddOAuthService__(name, accessTokenUrl, requestTokenUrl, authorizationUrl, consumerKey, consumerSecret, method, paramLocation) {
-  var oAuthConfig = UrlFetchApp.addOAuthService(name);
-
-  if (accessTokenUrl != null && accessTokenUrl.length > 0) {
-    oAuthConfig.setAccessTokenUrl(accessTokenUrl);
-  }
-
-  if (requestTokenUrl != null && requestTokenUrl.length > 0) {
-    oAuthConfig.setRequestTokenUrl(requestTokenUrl);
-  }
-
-  if (authorizationUrl != null && authorizationUrl.length > 0) {
-    oAuthConfig.setAuthorizationUrl(authorizationUrl);
-  }
-
-  if (consumerKey != null && consumerKey.length > 0) {
-    oAuthConfig.setConsumerKey(consumerKey);
-  }
-
-  if (consumerSecret != null && consumerSecret.length > 0) {
-    oAuthConfig.setConsumerSecret(consumerSecret);
-  }
-
-  if (method != null && method.length > 0) {
-    oAuthConfig.setMethod(method);
-  }
-
-  if (paramLocation != null && paramLocation.length > 0) {
-    oAuthConfig.setParamLocation(paramLocation);
-  }
 }
 
 /**
