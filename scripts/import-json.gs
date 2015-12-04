@@ -79,6 +79,7 @@ function ImportJSON(url, query, parseOptions) {
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
 function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, transformFunc) {
+  var url = url + "?" + (Math.ceil(new Date().getTime() / 1000));
   var jsondata = UrlFetchApp.fetch(url, fetchOptions);
   var object   = JSON.parse(jsondata.getContentText());
 
