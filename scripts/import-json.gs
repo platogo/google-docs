@@ -13,19 +13,6 @@
      ImportJSONViaPost     For use by end users to import a JSON feed from a URL using POST parameters
      ImportJSONAdvanced    For use by script developers to easily extend the functionality of this library
 
-  Future enhancements may include:
-
-   - Support for a real XPath like syntax similar to ImportXML for the query parameter
-
-  Or feel free to write these and add on to the library yourself!
-  ------------------------------------------------------------------------------------------------------------------------------------
-  Changelog:
-
-  1.2.1  Fixed a bug with how nested arrays are handled. The rowIndex counter wasn't incrementing properly when parsing.
-  1.2.0  Added ImportJSONViaPost and support for fetchOptions to ImportJSONAdvanced
-  1.1.1  Added a version number using Google Scripts Versioning so other developers can use the library
-  1.1    Added support for the noHeaders option
-  1.0    Initial release
  *====================================================================================================================================*/
 /**
  * Imports a JSON feed and returns the results to be inserted into a Google Spreadsheet. The JSON feed is flattened to create
