@@ -22,13 +22,11 @@
  *
  *   - Data from parent JSON elements gets inherited to their child elements, so rows representing child elements contain the values
  *      of the rows representing their parent elements.
- *   - Values longer than 256 characters get truncated.
  *   - Headers have slashes converted to spaces, common prefixes removed and the resulting text converted to title case.
  *
  * To change this behavior, pass in one of these values in the options parameter:
  *
  *    noInherit:     Don't inherit values from parent elements
- *    noTruncate:    Don't truncate values
  *    rawHeaders:    Don't prettify headers
  *    noHeaders:     Don't include headers, only the data
  *    debugLocation: Prepend each value with the row & column it belongs in
@@ -36,7 +34,7 @@
  * For example:
  *
  *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "/feed/entry/title,/feed/entry/content",
- *               "noInherit,noTruncate,rawHeaders")
+ *               "noInherit,rawHeaders")
  *
  * @param {url}          the URL to a public JSON feed
  * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
@@ -67,8 +65,8 @@ function ImportJSON(url, query, parseOptions) {
  *              function (query, path) { return path.indexOf(query) == 0; },
  *              function (data, row, column) { data[row][column] = data[row][column].toString().substr(0, 100); } )
  *
- * In this example, the import function checks to see if the path to the data being imported starts with the query. The transform
- * function takes the data and truncates it. For more robust versions of these functions, see the internal code of this library.
+ * In this example, the import function checks to see if the path to the data being imported starts with the query.
+ * For more robust versions of these functions, see the internal code of this library.
  *
  * @param {url}           the URL to a public JSON feed
  * @param {fetchOptions}  an object whose properties are options used to retrieve the JSON feed from the URL
@@ -227,14 +225,12 @@ function isObjectArray_(test) {
  *
  *   - Data from parent JSON elements gets inherited to their child elements, so rows representing child elements contain the values
  *     of the rows representing their parent elements.
- *   - Values longer than 256 characters get truncated.
  *   - Values in row 0 (headers) have slashes converted to spaces, common prefixes removed and the resulting text converted to title
 *      case.
  *
  * To change this behavior, pass in one of these values in the options parameter:
  *
  *    noInherit:     Don't inherit values from parent elements
- *    noTruncate:    Don't truncate values
  *    rawHeaders:    Don't prettify headers
  *    debugLocation: Prepend each value with the row & column it belongs in
  */
@@ -255,8 +251,8 @@ function defaultTransform_(data, row, column, options) {
     data[row][column] = toTitleCase_(data[row][column].toString().replace(/[\/\_]/g, " "));
   }
 
-  if (!hasOption_(options, "noTruncate") && data[row][column]) {
-    data[row][column] = data[row][column].toString().substr(0, 256);
+  if (data[row][column]) {
+    data[row][column] = data[row][column].toString();
   }
 
   if (hasOption_(options, "debugLocation")) {
