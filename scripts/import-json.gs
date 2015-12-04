@@ -10,7 +10,6 @@
   A library for importing JSON feeds into Google spreadsheets. Functions include:
 
      ImportJSON            For use by end users to import a JSON feed from a URL
-     ImportJSONViaPost     For use by end users to import a JSON feed from a URL using POST parameters
      ImportJSONAdvanced    For use by script developers to easily extend the functionality of this library
 
  *====================================================================================================================================*/
@@ -50,68 +49,6 @@ function ImportJSON(url, query, parseOptions) {
 }
 
 /**
- * Imports a JSON feed via a POST request and returns the results to be inserted into a Google Spreadsheet. The JSON feed is
- * flattened to create a two-dimensional array. The first row contains the headers, with each column header indicating the path to
- * that data in the JSON feed. The remaining rows contain the data.
- *
- * To retrieve the JSON, a POST request is sent to the URL and the payload is passed as the content of the request using the content
- * type "application/x-www-form-urlencoded". If the fetchOptions define a value for "method", "payload" or "contentType", these
- * values will take precedent. For example, advanced users can use this to make this function pass XML as the payload using a GET
- * request and a content type of "application/xml; charset=utf-8". For more information on the available fetch options, see
- * https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app . At this time the "headers" option is not supported.
- *
- * By default, the returned data gets transformed so it looks more like a normal data import. Specifically:
- *
- *   - Data from parent JSON elements gets inherited to their child elements, so rows representing child elements contain the values
- *     of the rows representing their parent elements.
- *   - Values longer than 256 characters get truncated.
- *   - Headers have slashes converted to spaces, common prefixes removed and the resulting text converted to title case.
- *
- * To change this behavior, pass in one of these values in the options parameter:
- *
- *    noInherit:     Don't inherit values from parent elements
- *    noTruncate:    Don't truncate values
- *    rawHeaders:    Don't prettify headers
- *    noHeaders:     Don't include headers, only the data
- *    debugLocation: Prepend each value with the row & column it belongs in
- *
- * For example:
- *
- *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "user=bob&apikey=xxxx",
- *               "validateHttpsCertificates=false", "/feed/entry/title,/feed/entry/content", "noInherit,noTruncate,rawHeaders")
- *
- * @param {url}          the URL to a public JSON feed
- * @param {payload}      the content to pass with the POST request; usually a URL encoded list of parameters separated by ampersands
- * @param {fetchOptions} a comma-separated list of options used to retrieve the JSON feed from the URL
- * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
- * @param {parseOptions} a comma-separated list of options that alter processing of the data
- *
- * @return a two-dimensional array containing the data, with the first row containing headers
- **/
-function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
-  var postOptions = parseToObject_(fetchOptions);
-
-  if (postOptions["method"] == null) {
-    postOptions["method"] = "POST";
-  }
-
-  if (postOptions["payload"] == null) {
-    postOptions["payload"] = payload;
-  }
-
-  if (postOptions["contentType"] == null) {
-    postOptions["contentType"] = "application/x-www-form-urlencoded";
-  }
-
-  convertToBool_(postOptions, "validateHttpsCertificates");
-  convertToBool_(postOptions, "useIntranet");
-  convertToBool_(postOptions, "followRedirects");
-  convertToBool_(postOptions, "muteHttpExceptions");
-
-  return ImportJSONAdvanced(url, postOptions, query, parseOptions, includeXPath_, defaultTransform_);
-}
-
-/**
  * An advanced version of ImportJSON designed to be easily extended by a script. This version cannot be called from within a
  * spreadsheet.
  *
@@ -119,17 +56,12 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
  * a two-dimensional array. The first row contains the headers, with each column header indicating the path to that data in
  * the JSON feed. The remaining rows contain the data.
  *
- * The fetchOptions can be used to change how the JSON feed is retrieved. For instance, the "method" and "payload" options can be
- * set to pass a POST request with post parameters. For more information on the available parameters, see
- * https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app .
- *
  * Use the include and transformation functions to determine what to include in the import and how to transform the data after it is
  * imported.
  *
  * For example:
  *
  *   ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json",
- *              new Object() { "method" : "post", "payload" : "user=bob&apikey=xxxx" },
  *              "/feed/entry",
  *              "",
  *              function (query, path) { return path.indexOf(query) == 0; },
